@@ -1,0 +1,57 @@
+% --- 1) Extract numeric arrays ---
+t_data     = out.t.Time;        
+x_data     = out.x.Data;        
+z_data     = out.z.Data;        
+theta_data = out.theta.Data;
+
+% --- 1a) Extract & squeeze reference data ---
+x_ref_data = squeeze(out.x_ref.Data);
+z_ref_data = squeeze(out.z_ref.Data);
+
+% Define rocket length
+L = 2;
+
+% Create a figure
+figure('Name','Rocket Animation','Color','w');
+hold on; grid on; axis equal;
+
+% Fix axis limits (adjust as needed)
+axis([0 50 0 50]);
+axis manual;
+
+% Plot the reference trajectory once in green
+plot(x_ref_data, z_ref_data, 'g--', 'LineWidth', 2, ...
+    'DisplayName','Reference Trajectory');
+
+% Skip factor
+skipFactor = 40;
+
+% Pre-plot some empty handles so we can update them
+rocketLine = plot(NaN, NaN, 'b-', 'LineWidth', 2);
+rocketDot  = plot(NaN, NaN, 'ro', 'MarkerFaceColor','r');
+pathLine   = plot(NaN, NaN, 'k--');
+
+xlabel('X Position');
+ylabel('Z Position');
+title('Rocket Animation with Reference');
+legend('show','Location','best');
+
+for i = 1:skipFactor:length(t_data)
+    % Current state
+    x_i = x_data(i);
+    z_i = z_data(i);
+    th  = theta_data(i);
+
+    % Nose and tail
+    x_nose = x_i + (L/2)*sin(th);
+    z_nose = z_i + (L/2)*cos(th);
+    x_tail = x_i - (L/2)*sin(th);
+    z_tail = z_i - (L/2)*cos(th);
+
+    set(rocketLine, 'XData', [x_tail, x_nose], 'YData', [z_tail, z_nose]);
+    set(rocketDot,  'XData', x_i,            'YData', z_i);
+    set(pathLine,   'XData', x_data(1:i),    'YData', z_data(1:i));
+
+    title(sprintf('Time = %.2f s', t_data(i)));
+    drawnow limitrate
+end
